@@ -11,7 +11,9 @@ export const NotConnected = () => {
         width: "100%",
       }}
     >
-      <Typography variant="h6">Please connect your wallet</Typography>
+      <Typography variant="h6">
+        Please install Metamask and connect your wallet
+      </Typography>
     </Box>
   );
 };
