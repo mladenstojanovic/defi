@@ -1,5 +1,8 @@
+import { CircularProgress } from "@mui/material";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
+import { Providers } from "./context";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,7 +28,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <Suspense
+          fallback={
+            <div className="container flex justify-center items-center h-100 w-100">
+              <CircularProgress />
+            </div>
+          }
+        >
+          <Providers>
+            <div className="container">{children}</div>
+          </Providers>
+        </Suspense>
       </body>
     </html>
   );

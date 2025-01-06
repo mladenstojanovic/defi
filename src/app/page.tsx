@@ -1,95 +1,117 @@
-import Image from "next/image";
+"use client";
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  LinearProgress,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { ChangeEvent } from "react";
+import { CDP, Error, NotConnected } from "./components";
+import { collateralTypes } from "./constants";
+import { useSearchInput, useWeb3 } from "./context";
+import { useQueryNearbyCDP } from "./hooks";
 import styles from "./page.module.css";
+import { useDebounce } from "./utils";
 
 export default function Home() {
+  const { searchTerm, setSearchTerm, collateralType, setCollateralType } =
+    useSearchInput();
+
+  const debouncedSearchTerm = useDebounce<string>(searchTerm, 600);
+
+  const { web3, isConnected, initError } = useWeb3();
+
+  const { matchingCdps, isLoading, progress, error } = useQueryNearbyCDP(
+    web3,
+    debouncedSearchTerm,
+    collateralType
+  );
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSelectChange = (event: SelectChangeEvent) => {
+    setCollateralType(event.target.value as string);
+  };
+
+  if (!isConnected) {
+    return <NotConnected />;
+  }
+
+  if (error || initError) {
+    return <Error />;
+  }
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <FormControl sx={{ maxWidth: 100 }}>
+            <InputLabel id="collateral-type-label">Type</InputLabel>
+            <Select
+              labelId="collateral-type-label"
+              id="collateral-type-select"
+              value={collateralType}
+              label="Collateral Type"
+              onChange={handleSelectChange}
+              disabled={isLoading}
+            >
+              {collateralTypes.map((collateralType) => (
+                <MenuItem
+                  value={collateralType.value}
+                  key={collateralType.value}
+                >
+                  {collateralType.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl sx={{ flex: "1 0 auto" }}>
+            <TextField
+              id="cdp-id"
+              label="CDP ID"
+              variant="standard"
+              value={searchTerm}
+              onChange={handleInputChange}
+              disabled={isLoading}
             />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
+          </FormControl>
+        </Box>
+        <Box>
+          {isLoading ? (
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Box sx={{ width: "100%", mr: 1 }}>
+                <LinearProgress variant="determinate" value={progress} />
+              </Box>
+              <Box sx={{ minWidth: 35 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary" }}
+                >{`${Math.round(progress)}%`}</Typography>
+              </Box>
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                flexWrap: "wrap",
+                justifyContent: "center",
+              }}
+            >
+              {matchingCdps.map((cdp) => (
+                <CDP cdp={cdp} key={cdp.id} colType={collateralType} />
+              ))}
+            </Box>
+          )}
+        </Box>
       </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
