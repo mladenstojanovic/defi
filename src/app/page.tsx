@@ -33,7 +33,10 @@ export default function Home() {
   );
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    if (value === "" || /^[0-9]+$/.test(value)) {
+      setSearchTerm(value);
+    }
   };
 
   const handleSelectChange = (event: SelectChangeEvent) => {
@@ -80,6 +83,18 @@ export default function Home() {
               value={searchTerm}
               onChange={handleInputChange}
               disabled={isLoading}
+              type="text"
+              slotProps={{
+                input: {
+                  inputMode: "numeric",
+                },
+              }}
+              error={searchTerm !== "" && !/^[0-9]+$/.test(searchTerm)}
+              helperText={
+                searchTerm !== "" && !/^[0-9]+$/.test(searchTerm)
+                  ? "Please enter numbers only"
+                  : ""
+              }
             />
           </FormControl>
         </Box>
