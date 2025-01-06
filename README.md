@@ -12,7 +12,6 @@ A Next.js application for exploring and managing Collateralized Debt Positions (
   - Liquidation ratio
   - Maximum collateral withdrawal
   - Maximum additional debt
-- Responsive design with dark/light mode support
 - Client-side caching for improved performance
 
 ## Tech Stack
